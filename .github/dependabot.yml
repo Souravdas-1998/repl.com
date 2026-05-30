@@ -1,0 +1,48 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: UTC
+    open-pull-requests-limit: 10
+    groups:
+      dev-tooling:
+        patterns:
+          - "typescript"
+          - "eslint*"
+          - "@types/*"
+          - "prettier"
+          - "vite*"
+          - "@vitejs/*"
+          - "tailwindcss*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-*"
+          - "@tanstack/*"
+      drizzle:
+        patterns:
+          - "drizzle-*"
+      express:
+        patterns:
+          - "express"
+          - "@types/express"
+          - "pino*"
+          - "zod"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: UTC
+    open-pull-requests-limit: 5
