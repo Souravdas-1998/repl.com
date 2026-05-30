@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "L18sKSh9GY3C_DCtZ0TJ7"
+uri = "file://artifacts/clothing-store/public/hero-bg.jpg"
+type = "image"
+title = "High-end fashion boutique aesthetic, abstract or clothing rack, bold contrast, minimal"

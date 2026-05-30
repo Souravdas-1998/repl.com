@@ -1,22 +1,31 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI Clothing Store API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Clothing products
+  - name: categories
+    description: Product categories
+  - name: cart
+    description: Shopping cart
+  - name: orders
+    description: Orders
+  - name: ai
+    description: AI features
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +33,683 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List all products
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/featured:
+    get:
+      operationId: getFeaturedProducts
+      tags: [products]
+      summary: Get featured/trending products
+      responses:
+        "200":
+          description: Featured products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/stats:
+    get:
+      operationId: getProductStats
+      tags: [products]
+      summary: Store stats summary
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreStats"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: Get current cart
+      responses:
+        "200":
+          description: Cart with items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+    delete:
+      operationId: clearCart
+      tags: [cart]
+      summary: Clear the cart
+      responses:
+        "204":
+          description: Cleared
+
+  /cart/items:
+    post:
+      operationId: addToCart
+      tags: [cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartItemInput"
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CartItem"
+
+  /cart/items/{id}:
+    patch:
+      operationId: updateCartItem
+      tags: [cart]
+      summary: Update cart item quantity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartItemUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CartItem"
+
+    delete:
+      operationId: removeFromCart
+      tags: [cart]
+      summary: Remove item from cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removed
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List all orders
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create order from cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+
+  /ai/outfit-suggestions:
+    post:
+      operationId: getOutfitSuggestions
+      tags: [ai]
+      summary: Get AI outfit suggestions based on a selected product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutfitRequest"
+      responses:
+        "200":
+          description: Suggested outfit items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutfitSuggestions"
+
+  /ai/style-chat:
+    post:
+      operationId: styleChat
+      tags: [ai]
+      summary: Chat with the AI style assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StyleChatInput"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleReply"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    Product:
+      type: object
+      required: [id, name, price, category, inStock, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        price:
+          type: number
+        originalPrice:
+          type: ["number", "null"]
+        category:
+          type: string
+        imageUrl:
+          type: ["string", "null"]
+        sizes:
+          type: array
+          items:
+            type: string
+        colors:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        inStock:
+          type: boolean
+        featured:
+          type: boolean
+        rating:
+          type: ["number", "null"]
+        reviewCount:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    ProductInput:
+      type: object
+      required: [name, price, category]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        price:
+          type: number
+        originalPrice:
+          type: number
+        category:
+          type: string
+        imageUrl:
+          type: string
+        sizes:
+          type: array
+          items:
+            type: string
+        colors:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        inStock:
+          type: boolean
+        featured:
+          type: boolean
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        originalPrice:
+          type: number
+        category:
+          type: string
+        imageUrl:
+          type: string
+        sizes:
+          type: array
+          items:
+            type: string
+        colors:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        inStock:
+          type: boolean
+        featured:
+          type: boolean
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+
+    StoreStats:
+      type: object
+      required: [totalProducts, totalCategories, totalOrders, featuredCount, inStockCount]
+      properties:
+        totalProducts:
+          type: integer
+        totalCategories:
+          type: integer
+        totalOrders:
+          type: integer
+        featuredCount:
+          type: integer
+        inStockCount:
+          type: integer
+
+    Category:
+      type: object
+      required: [id, name, slug, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        productCount:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    CategoryInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        slug:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        imageUrl:
+          type: string
+
+    Cart:
+      type: object
+      required: [items, total, itemCount]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        total:
+          type: number
+        itemCount:
+          type: integer
+
+    CartItem:
+      type: object
+      required: [id, productId, quantity, size, color, product]
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        size:
+          type: ["string", "null"]
+        color:
+          type: ["string", "null"]
+        product:
+          $ref: "#/components/schemas/Product"
+
+    CartItemInput:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        size:
+          type: string
+        color:
+          type: string
+
+    CartItemUpdate:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+
+    Order:
+      type: object
+      required: [id, status, total, items, createdAt]
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        total:
+          type: number
+        customerName:
+          type: ["string", "null"]
+        customerEmail:
+          type: ["string", "null"]
+        shippingAddress:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        createdAt:
+          type: string
+
+    OrderItem:
+      type: object
+      required: [id, productId, quantity, price, productName]
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        price:
+          type: number
+        size:
+          type: ["string", "null"]
+        color:
+          type: ["string", "null"]
+        productName:
+          type: string
+
+    OrderInput:
+      type: object
+      required: [customerName, customerEmail, shippingAddress]
+      properties:
+        customerName:
+          type: string
+          minLength: 1
+        customerEmail:
+          type: string
+          minLength: 1
+        shippingAddress:
+          type: string
+          minLength: 1
+
+    OutfitRequest:
+      type: object
+      required: [productId]
+      properties:
+        productId:
+          type: integer
+        occasion:
+          type: string
+
+    OutfitSuggestions:
+      type: object
+      required: [suggestions, outfitDescription]
+      properties:
+        outfitDescription:
+          type: string
+        suggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+
+    StyleChatInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+
+    ChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+        content:
+          type: string
+
+    StyleReply:
+      type: object
+      required: [reply]
+      properties:
+        reply:
+          type: string
+        suggestedProductIds:
+          type: array
+          items:
+            type: integer
